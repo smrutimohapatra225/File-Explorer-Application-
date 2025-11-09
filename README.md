@@ -4,6 +4,8 @@ The Linux File Explorer is a console-based application developed in C++ that int
 
 
 ##Objective
+
+
 The primary objective of this project is to build a command-line file explorer that allows users to:
 -View directory contents
 -Navigate through directories
@@ -14,6 +16,8 @@ The project helps in understanding how C++ interacts with the Linux filesystem, 
 
 
 ##Day-wise Implementation
+
+
 Day   	              Task	                                           Description
 Day 1	              List Files	                          Designed the structure and implemented directory listing using <filesystem>
 Day 2	              Navigation	                          Added directory traversal commands such as cd and ls
@@ -33,6 +37,8 @@ Day 5             	Permissions                         	Integrated permission vi
 
 
 ##Commands Used
+
+
 Command	                   Description
 ls	                    List directory contents
 cd <dir>	              Change current directory
