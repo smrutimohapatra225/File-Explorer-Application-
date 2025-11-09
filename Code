@@ -1,0 +1,197 @@
+#include <iostream>
+#include <filesystem>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <iomanip>
+#include <sstream>
+
+namespace fs = std::filesystem;
+using namespace std;
+
+// Function to list all files and directories
+void listDirectory(const fs::path& path = fs::current_path()) {
+    cout << "\n📂 Listing directory: \"" << path << "\"\n";
+    cout << "-------------------------------------------------------------\n";
+    cout << left << setw(30) << "Name" << setw(12) << "Type" << "Size(bytes)\n";
+    cout << "-------------------------------------------------------------\n";
+
+    try {
+        for (const auto& entry : fs::directory_iterator(path)) {
+            string type = entry.is_directory() ? "Directory" : "File";
+            auto size = entry.is_directory() ? 0 : fs::file_size(entry);
+            cout << left << setw(30) << entry.path().filename().string()
+                 << setw(12) << type << size << "\n";
+        }
+    } catch (const exception& e) {
+        cerr << "❌ Error: " << e.what() << "\n";
+    }
+}
+
+// Function to change current directory
+void changeDirectory(const string& dir) {
+    try {
+        fs::current_path(dir);
+        cout << "✅ Changed directory to: " << fs::current_path() << "\n";
+    } catch (const exception& e) {
+        cerr << "❌ Error: " << e.what() << "\n";
+    }
+}
+
+// Function to copy files
+void copyFile(const string& src, const string& dest) {
+    try {
+        fs::copy(src, dest, fs::copy_options::overwrite_existing);
+        cout << "📄 File copied successfully.\n";
+    } catch (const exception& e) {
+        cerr << "❌ Error copying file: " << e.what() << "\n";
+    }
+}
+
+// Function to move (rename) files
+void moveFile(const string& src, const string& dest) {
+    try {
+        fs::rename(src, dest);
+        cout << "📦 File moved successfully.\n";
+    } catch (const exception& e) {
+        cerr << "❌ Error moving file: " << e.what() << "\n";
+    }
+}
+
+// Function to delete files
+void deleteFile(const string& filename) {
+    try {
+        if (fs::remove(filename))
+            cout << "🗑️ File deleted successfully.\n";
+        else
+            cout << "⚠️ File not found.\n";
+    } catch (const exception& e) {
+        cerr << "❌ Error deleting file: " << e.what() << "\n";
+    }
+}
+
+// Function to create directory
+void createDirectory(const string& foldername) {
+    try {
+        if (fs::create_directory(foldername))
+            cout << "📁 Directory created: " << foldername << "\n";
+        else
+            cout << "⚠️ Directory already exists.\n";
+    } catch (const exception& e) {
+        cerr << "❌ Error: " << e.what() << "\n";
+    }
+}
+
+// Function to create an empty file
+void createFile(const string& filename) {
+    ofstream file(filename);
+    if (file) {
+        cout << "📄 File created: " << filename << "\n";
+        file.close();
+    } else {
+        cerr << "❌ Could not create file.\n";
+    }
+}
+
+// Recursive file search
+void searchFile(const fs::path& path, const string& target, vector<fs::path>& results) {
+    for (const auto& entry : fs::directory_iterator(path)) {
+        if (entry.is_directory()) {
+            searchFile(entry.path(), target, results);
+        } else if (entry.path().filename() == target) {
+            results.push_back(entry.path());
+        }
+    }
+}
+
+void searchCommand(const string& filename) {
+    vector<fs::path> results;
+    cout << "🔍 Searching for \"" << filename << "\"...\n";
+    searchFile(fs::current_path(), filename, results);
+
+    if (results.empty()) {
+        cout << "❌ File not found.\n";
+    } else {
+        cout << "✅ Found " << results.size() << " match(es):\n";
+        for (auto& p : results)
+            cout << "  " << p << "\n";
+    }
+}
+
+// Function to view file permissions
+void viewPermissions(const string& filename) {
+    try {
+        fs::perms p = fs::status(filename).permissions();
+        cout << "🔐 Permissions for " << filename << ": ";
+        cout << ((p & fs::perms::owner_read) != fs::perms::none ? "r" : "-");
+        cout << ((p & fs::perms::owner_write) != fs::perms::none ? "w" : "-");
+        cout << ((p & fs::perms::owner_exec) != fs::perms::none ? "x" : "-");
+        cout << ((p & fs::perms::group_read) != fs::perms::none ? "r" : "-");
+        cout << ((p & fs::perms::group_write) != fs::perms::none ? "w" : "-");
+        cout << ((p & fs::perms::group_exec) != fs::perms::none ? "x" : "-");
+        cout << ((p & fs::perms::others_read) != fs::perms::none ? "r" : "-");
+        cout << ((p & fs::perms::others_write) != fs::perms::none ? "w" : "-");
+        cout << ((p & fs::perms::others_exec) != fs::perms::none ? "x" : "-");
+        cout << "\n";
+    } catch (const exception& e) {
+        cerr << "❌ Error: " << e.what() << "\n";
+    }
+}
+
+// Function to change permissions
+void changePermissions(const string& filename, const string& permstr) {
+    try {
+        fs::perms perms = static_cast<fs::perms>(stoul(permstr, nullptr, 8));
+        fs::permissions(filename, perms);
+        cout << "✅ Permissions updated for " << filename << "\n";
+    } catch (const exception& e) {
+        cerr << "❌ Error changing permissions: " << e.what() << "\n";
+    }
+}
+
+int main() {
+    cout << "=============================\n";
+    cout << "🧭 Linux File Explorer (C++)\n";
+    cout << "=============================\n";
+    cout << "Type 'help' to see available commands.\n\n";
+
+    string command;
+    while (true) {
+        cout << "\n[" << fs::current_path() << "]$ ";
+        getline(cin, command);
+        stringstream ss(command);
+        string cmd, arg1, arg2;
+        ss >> cmd >> arg1 >> arg2;
+
+        if (cmd == "exit") break;
+        else if (cmd == "help") {
+            cout << "\n📘 Available commands:\n";
+            cout << "  ls                       → List directory contents\n";
+            cout << "  cd <dir>                 → Change directory\n";
+            cout << "  cp <src> <dest>          → Copy file\n";
+            cout << "  mv <src> <dest>          → Move/Rename file\n";
+            cout << "  rm <file>                → Delete file\n";
+            cout << "  mkdir <folder>           → Create folder\n";
+            cout << "  touch <file>             → Create empty file\n";
+            cout << "  search <filename>        → Search file recursively\n";
+            cout << "  viewperm <file>          → View file permissions\n";
+            cout << "  chmod <octal> <file>     → Change file permissions (e.g., chmod 755 file)\n";
+            cout << "  exit                     → Exit program\n";
+        }
+        else if (cmd == "ls") listDirectory();
+        else if (cmd == "cd") changeDirectory(arg1);
+        else if (cmd == "cp") copyFile(arg1, arg2);
+        else if (cmd == "mv") moveFile(arg1, arg2);
+        else if (cmd == "rm") deleteFile(arg1);
+        else if (cmd == "mkdir") createDirectory(arg1);
+        else if (cmd == "touch") createFile(arg1);
+        else if (cmd == "search") searchCommand(arg1);
+        else if (cmd == "viewperm") viewPermissions(arg1);
+        else if (cmd == "chmod") changePermissions(arg2, arg1);
+        else if (cmd.empty()) continue;
+        else cout << "⚠️ Unknown command. Type 'help' for a list of commands.\n";
+    }
+
+    cout << "\n👋 Exiting File Explorer. Goodbye!\n";
+    return 0;
+}
