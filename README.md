@@ -1,4 +1,4 @@
-#####Project Overview
+##Project Overview
 
 The Linux File Explorer is a console-based application developed in C++ that interacts directly with the Linux operating system to perform essential file and directory management operations.It replicates the basic functionality of a file manager, but in a command-line interface (CLI), offering an efficient and lightweight way to manage files using simple commands.This project demonstrates the use of C++17 filesystem libraries, object-oriented programming principles, and Linux file permission management — showcasing both system-level programming and structured logic design.
 
